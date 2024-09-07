@@ -1,6 +1,6 @@
 package com.br;
 
-import com.br.controller.JFormMain;
+import com.br.controller.main.JFormMain;
 
 import javax.swing.*;
 
