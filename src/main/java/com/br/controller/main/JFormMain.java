@@ -157,35 +157,45 @@ public class JFormMain extends JFrame {
     }
 
     private void jButtonCalculateActionPerformed(ActionEvent evt) {
-        List<Employee> employees = csvService.readEmployeesFromCsv(jTextFieldPathToExcel.getText());
-
-        for (Employee employee : employees) {
-            System.out.println(employee);
+        if (checkStringAndShowWarning(jTextFieldPathToExcel.getText(), "Você deve selecionar um CSV antes de calcular.")) {
+            return;
         }
+
+        if (checkStringAndShowWarning(jTextFieldPathToSaveNewExcel.getText(), "Você deve selecionar uma pasta para salvar o novo CSV.")) {
+            return;
+        }
+
+
     }
 
     /**
      * Método que retorna o caminho absoluto do arquivo .csv ou o diretório, baseado no parâmetro 'directoryOnly'
-     * */
+     */
     private String selectFileOrDirectory(boolean directoryOnly) {
         JFileChooser fileChooser = new JFileChooser();
 
-        // Se for para escolher apenas diretório
         if (directoryOnly) {
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         } else {
-            // Filtra para exibir apenas arquivos CSV
             FileNameExtensionFilter filter = new FileNameExtensionFilter("CSV Files", "csv");
             fileChooser.setFileFilter(filter);
             fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         }
 
-        // Exibe o dialog e captura o resultado
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             return selectedFile.getAbsolutePath();
         }
-        return null; // Caso o usuário cancele a operação
+        return null;
+    }
+
+    private boolean checkStringAndShowWarning(final String input, final String message) {
+        if (input == null || input.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, message, "Aviso", JOptionPane.WARNING_MESSAGE);
+            return true;
+        }
+
+        return false;
     }
 }
