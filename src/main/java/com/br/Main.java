@@ -1,15 +1,27 @@
 package com.br;
 
-import java.time.LocalTime;
+import com.br.controller.JFormMain;
 
-import static com.br.CalculoHorasNoturnas.calcularHorasNoturnas;
+import javax.swing.*;
+
+import static java.awt.EventQueue.invokeLater;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Logger.getLogger;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Horas noturnas: " + calcularHorasNoturnas(LocalTime.of(7, 0), LocalTime.of(21, 0)) + " minutos");
-        System.out.println("Horas noturnas: " + calcularHorasNoturnas(LocalTime.of(7, 0), LocalTime.of(22, 15)) + " minutos");
-        System.out.println("Horas noturnas: " + calcularHorasNoturnas(LocalTime.of(7, 0), LocalTime.of(22, 30)) + " minutos");
-        System.out.println("Horas noturnas: " + calcularHorasNoturnas(LocalTime.of(22, 0), LocalTime.of(0, 0)) + " minutos");
-        System.out.println("Horas noturnas: " + calcularHorasNoturnas(LocalTime.of(22, 0), LocalTime.of(5, 0)) + " minutos");
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Windows".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
+            getLogger(Main.class.getName()).log(SEVERE, null, ex);
+        }
+
+        JFormMain mainForm = new JFormMain();
+        invokeLater(() -> mainForm.setVisible(true));
     }
 }
