@@ -16,52 +16,35 @@ public class CsvServiceImpl implements CsvService {
 
     private static final char CSV_DELIMITER = ';';
     private static final int HEADER_INDEX = 1;
+    private static final String[] CSV_HEADER = {"Nome do Funcionário", "Horário de Entrada", "Horário de Saída",
+            "Minutos com 20%"};
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     @Override
     public List<Employee> readEmployeesFromCsv(String absolutePath) {
         try (CSVReader csvReader = createCsvReader(absolutePath)) {
             List<String[]> records = csvReader.readAll();
-
             return records.stream()
                     .skip(HEADER_INDEX)
                     .filter(this::isValidRecord)
                     .map(this::mapToEmployee)
                     .toList();
-
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error reading CSV file", e);
+            throw new RuntimeException("Error reading CSV file: " + absolutePath, e);
         }
     }
 
     @Override
-    public void writeEmployeesToCsv(final List<Employee> employees, final String outputPath) {
+    public void writeEmployeesToCsv(List<Employee> employees, String outputPath) {
         try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outputPath), StandardCharsets.UTF_8);
-             CSVWriter csvWriter = new CSVWriter(writer, CSV_DELIMITER, CSVWriter.NO_QUOTE_CHARACTER,
-                     CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END)) {
+             CSVWriter csvWriter = createCsvWriter(writer)) {
 
-            // Escreve o BOM para UTF-8 (marca de ordem de byte)
             writer.write('\ufeff');
-
-            // Escreve o cabeçalho
-            String[] header = {"Nome do Funcionário", "Horário de Entrada", "Horário de Saída",
-                    "Quantidade de minutos 20%)"};
-            csvWriter.writeNext(header);
-
-            // Escreve os dados dos empregados
-            for (Employee employee : employees) {
-                String[] record = {
-                        employee.getName(),
-                        employee.getEntryTime().format(DateTimeFormatter.ofPattern("HH:mm")),
-                        employee.getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm")),
-                        employee.getQuantityHours() != null ? employee.getQuantityHours().toString() : ""
-                };
-                csvWriter.writeNext(record);
-            }
+            csvWriter.writeNext(CSV_HEADER);
+            employees.forEach(employee -> csvWriter.writeNext(mapToCsvRecord(employee)));
 
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error writing to CSV file", e);
+            throw new RuntimeException("Error writing to CSV file: " + outputPath, e);
         }
     }
 
@@ -75,21 +58,38 @@ public class CsvServiceImpl implements CsvService {
                     .withCSVParser(parser)
                     .build();
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error reading CSV file", e);
+            throw new RuntimeException("Error creating CSVReader for file: " + absolutePath, e);
         }
     }
 
+    private CSVWriter createCsvWriter(OutputStreamWriter writer) {
+        return new CSVWriter(writer, CSV_DELIMITER, CSVWriter.NO_QUOTE_CHARACTER,
+                CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END);
+    }
+
     private boolean isValidRecord(String[] record) {
-        return record.length >= 3 && !record[0].isEmpty() && !record[1].isEmpty() && !record[2].isEmpty();
+        return record.length >= 3 && isNotEmpty(record[0]) && isNotEmpty(record[1]) && isNotEmpty(record[2]);
+    }
+
+    private boolean isNotEmpty(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
     private Employee mapToEmployee(String[] record) {
         return Employee.builder()
                 .name(record[0].trim())
-                .entryTime(LocalTime.parse(record[1]))
-                .departureTime(LocalTime.parse(record[2]))
+                .entryTime(LocalTime.parse(record[1], TIME_FORMATTER))
+                .departureTime(LocalTime.parse(record[2], TIME_FORMATTER))
                 .quantityHours(null)
                 .build();
+    }
+
+    private String[] mapToCsvRecord(Employee employee) {
+        return new String[]{
+                employee.getName(),
+                employee.getEntryTime().format(TIME_FORMATTER),
+                employee.getDepartureTime().format(TIME_FORMATTER),
+                employee.getQuantityHours() != null ? employee.getQuantityHours().toString() : ""
+        };
     }
 }
