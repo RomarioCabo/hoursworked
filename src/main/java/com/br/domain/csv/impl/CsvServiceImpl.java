@@ -2,13 +2,14 @@ package com.br.domain.csv.impl;
 
 import com.br.domain.csv.CsvService;
 import com.br.domain.employee.Employee;
-import com.opencsv.CSVParser;
-import com.opencsv.CSVParserBuilder;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
+import com.opencsv.*;
 
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class CsvServiceImpl implements CsvService {
@@ -33,6 +34,37 @@ public class CsvServiceImpl implements CsvService {
         }
     }
 
+    @Override
+    public void writeEmployeesToCsv(final List<Employee> employees, final String outputPath) {
+        try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(outputPath), StandardCharsets.UTF_8);
+             CSVWriter csvWriter = new CSVWriter(writer, CSV_DELIMITER, CSVWriter.NO_QUOTE_CHARACTER,
+                     CSVWriter.DEFAULT_ESCAPE_CHARACTER, CSVWriter.DEFAULT_LINE_END)) {
+
+            // Escreve o BOM para UTF-8 (marca de ordem de byte)
+            writer.write('\ufeff');
+
+            // Escreve o cabeçalho
+            String[] header = {"Nome do Funcionário", "Horário de Entrada", "Horário de Saída",
+                    "Quantidade de minutos 20%)"};
+            csvWriter.writeNext(header);
+
+            // Escreve os dados dos empregados
+            for (Employee employee : employees) {
+                String[] record = {
+                        employee.getName(),
+                        employee.getEntryTime().format(DateTimeFormatter.ofPattern("HH:mm")),
+                        employee.getDepartureTime().format(DateTimeFormatter.ofPattern("HH:mm")),
+                        employee.getQuantityHours() != null ? employee.getQuantityHours().toString() : ""
+                };
+                csvWriter.writeNext(record);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error writing to CSV file", e);
+        }
+    }
+
     private CSVReader createCsvReader(String absolutePath) {
         try {
             CSVParser parser = new CSVParserBuilder()
@@ -54,7 +86,7 @@ public class CsvServiceImpl implements CsvService {
 
     private Employee mapToEmployee(String[] record) {
         return Employee.builder()
-                .name(record[0])
+                .name(record[0].trim())
                 .entryTime(LocalTime.parse(record[1]))
                 .departureTime(LocalTime.parse(record[2]))
                 .quantityHours(null)

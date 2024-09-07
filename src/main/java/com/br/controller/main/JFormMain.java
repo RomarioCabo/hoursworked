@@ -3,6 +3,8 @@ package com.br.controller.main;
 import com.br.domain.csv.CsvService;
 import com.br.domain.csv.impl.CsvServiceImpl;
 import com.br.domain.employee.Employee;
+import com.br.domain.employee.service.EmployeeService;
+import com.br.domain.employee.service.impl.EmployeeServiceImpl;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -24,6 +26,7 @@ public class JFormMain extends JFrame {
     private JTextField jTextFieldPathToSaveNewExcel;
 
     private final CsvService csvService = new CsvServiceImpl();
+    private final EmployeeService employeeService = new EmployeeServiceImpl();
 
     public JFormMain() {
         initComponents();
@@ -165,7 +168,10 @@ public class JFormMain extends JFrame {
             return;
         }
 
+        List<Employee> mappedEmployees = employeeService
+                .mapperHoursWorked(csvService.readEmployeesFromCsv(jTextFieldPathToExcel.getText()));
 
+        csvService.writeEmployeesToCsv(mappedEmployees, jTextFieldPathToSaveNewExcel.getText() + "\\Ponto funcionários calculado.csv");
     }
 
     /**
