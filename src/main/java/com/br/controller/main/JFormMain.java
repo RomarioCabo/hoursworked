@@ -1,10 +1,15 @@
 package com.br.controller.main;
 
+import com.br.domain.csv.CsvService;
+import com.br.domain.csv.impl.CsvServiceImpl;
+import com.br.domain.employee.Employee;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.List;
 
 public class JFormMain extends JFrame {
 
@@ -17,6 +22,8 @@ public class JFormMain extends JFrame {
     private JPanel jPanel1;
     private JTextField jTextFieldPathToExcel;
     private JTextField jTextFieldPathToSaveNewExcel;
+
+    private final CsvService csvService = new CsvServiceImpl();
 
     public JFormMain() {
         initComponents();
@@ -150,10 +157,16 @@ public class JFormMain extends JFrame {
     }
 
     private void jButtonCalculateActionPerformed(ActionEvent evt) {
-        // TODO add your handling code here:
+        List<Employee> employees = csvService.readEmployeesFromCsv(jTextFieldPathToExcel.getText());
+
+        for (Employee employee : employees) {
+            System.out.println(employee);
+        }
     }
 
-    // Método que retorna o caminho absoluto do arquivo .csv ou o diretório, baseado no parâmetro 'directoryOnly'
+    /**
+     * Método que retorna o caminho absoluto do arquivo .csv ou o diretório, baseado no parâmetro 'directoryOnly'
+     * */
     private String selectFileOrDirectory(boolean directoryOnly) {
         JFileChooser fileChooser = new JFileChooser();
 
