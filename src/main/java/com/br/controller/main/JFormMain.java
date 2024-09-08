@@ -16,12 +16,7 @@ import java.util.List;
 public class JFormMain extends JFrame {
 
     private JButton jButtonCalculate;
-    private JButton jButtonSelectExcel;
-    private JButton jButtonSelectPathSave;
-    private JLabel jLabel1;
-    private JLabel jLabel2;
-    private JLabel jLabelTitle;
-    private JPanel jPanel1;
+    private JLabel jLabelWait;
     private JTextField jTextFieldPathToExcel;
     private JTextField jTextFieldPathToSaveNewExcel;
 
@@ -34,15 +29,16 @@ public class JFormMain extends JFrame {
 
     private void initComponents() {
 
-        jPanel1 = new JPanel();
-        jLabelTitle = new JLabel();
-        jLabel1 = new JLabel();
+        JPanel jPanel1 = new JPanel();
+        JLabel jLabelTitle = new JLabel();
+        JLabel jLabel1 = new JLabel();
         jTextFieldPathToExcel = new JTextField();
-        jButtonSelectExcel = new JButton();
-        jLabel2 = new JLabel();
+        JButton jButtonSelectExcel = new JButton();
+        JLabel jLabel2 = new JLabel();
         jTextFieldPathToSaveNewExcel = new JTextField();
-        jButtonSelectPathSave = new JButton();
+        JButton jButtonSelectPathSave = new JButton();
         jButtonCalculate = new JButton();
+        jLabelWait = new JLabel();
 
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setTitle("Calculadora de Horas Noturnas");
@@ -82,6 +78,11 @@ public class JFormMain extends JFrame {
         jButtonCalculate.setCursor(new Cursor(Cursor.HAND_CURSOR));
         jButtonCalculate.addActionListener(this::jButtonCalculateActionPerformed);
 
+        jLabelWait.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        jLabelWait.setForeground(Color.RED);
+        jLabelWait.setText("Aguarde...");
+        jLabelWait.setVisible(false);
+
         GroupLayout jPanel1Layout = new GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -104,7 +105,8 @@ public class JFormMain extends JFrame {
                                                                 .addComponent(jTextFieldPathToSaveNewExcel, GroupLayout.PREFERRED_SIZE, 288, GroupLayout.PREFERRED_SIZE)
                                                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                                                 .addComponent(jButtonSelectPathSave))
-                                                        .addComponent(jButtonCalculate, GroupLayout.Alignment.TRAILING))
+                                                        .addComponent(jButtonCalculate, GroupLayout.Alignment.TRAILING)
+                                                        .addComponent(jLabelWait, GroupLayout.Alignment.TRAILING))
                                                 .addGap(0, 6, Short.MAX_VALUE)))
                                 .addContainerGap())
         );
@@ -125,6 +127,8 @@ public class JFormMain extends JFrame {
                                         .addComponent(jButtonSelectPathSave))
                                 .addGap(18, 18, 18)
                                 .addComponent(jButtonCalculate)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabelWait)
                                 .addContainerGap(9, Short.MAX_VALUE))
         );
 
@@ -168,10 +172,29 @@ public class JFormMain extends JFrame {
             return;
         }
 
-        List<Employee> mappedEmployees = employeeService
-                .mapperHoursWorked(csvService.readEmployeesFromCsv(jTextFieldPathToExcel.getText()));
+        jLabelWait.setVisible(true);
+        jButtonCalculate.setEnabled(false);
 
-        csvService.writeEmployeesToCsv(mappedEmployees, jTextFieldPathToSaveNewExcel.getText() + "\\Ponto funcionários calculado.csv");
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                List<Employee> mappedEmployees = employeeService
+                        .mapperHoursWorked(csvService.readEmployeesFromCsv(jTextFieldPathToExcel.getText()));
+
+                csvService.writeEmployeesToCsv(mappedEmployees, jTextFieldPathToSaveNewExcel.getText() + "\\Ponto funcionários calculado.csv");
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                jLabelWait.setVisible(false);
+                jButtonCalculate.setEnabled(true);
+
+                JOptionPane.showMessageDialog(null, "CSV gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            }
+        };
+
+        worker.execute();
     }
 
     /**
