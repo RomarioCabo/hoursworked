@@ -154,7 +154,7 @@ public class JFormMain extends JFrame {
                                 .addContainerGap(9, Short.MAX_VALUE))
         );
 
-        jPanel1Layout.linkSize(SwingConstants.VERTICAL, jLabel1, jTextFieldPathToExcel);
+        jPanel1Layout.linkSize(SwingConstants.VERTICAL, jLabel1, jTextFieldPathToExcel, jLabel2, jTextFieldPathToSaveNewExcel, jButtonSelectExcel, jButtonSelectPathSave);
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
