@@ -15,5 +15,6 @@ public class Employee {
     private String name;
     private LocalTime entryTime;
     private LocalTime departureTime;
-    private Long quantityHours;
+    private Long quantityMinutes;
+    private Float quantityHours;
 }

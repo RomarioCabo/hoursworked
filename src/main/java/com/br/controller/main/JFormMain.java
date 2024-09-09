@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 
 public class JFormMain extends JFrame {
 
@@ -28,6 +29,23 @@ public class JFormMain extends JFrame {
     }
 
     private void initComponents() {
+        // Define o Locale para português do Brasil
+        Locale.setDefault(new Locale("pt", "BR"));
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        UIManager.put("FileChooser.openDialogTitleText", "Abrir");
+        UIManager.put("FileChooser.saveDialogTitleText", "Salvar");
+        UIManager.put("FileChooser.cancelButtonText", "Cancelar");
+        UIManager.put("FileChooser.openButtonText", "Abrir");
+        UIManager.put("FileChooser.saveButtonText", "Salvar");
+        UIManager.put("FileChooser.fileNameLabelText", "Nome do Arquivo");
+        UIManager.put("FileChooser.filesOfTypeLabelText", "Tipo de Arquivo");
+        UIManager.put("FileChooser.lookInLabelText", "Procurar em");
+        UIManager.put("FileChooser.folderNameLabelText", "Nome da Pasta");
 
         JPanel jPanel1 = new JPanel();
         JLabel jLabelTitle = new JLabel();
@@ -198,10 +216,16 @@ public class JFormMain extends JFrame {
     }
 
     /**
-     * Método que retorna o caminho absoluto do arquivo .csv ou o diretório, baseado no parâmetro 'directoryOnly'
+     * Seleciona e retorna o caminho absoluto de um arquivo .csv ou de um diretório,
+     * dependendo do parâmetro 'directoryOnly'.
+     *
+     * @param directoryOnly se for true, o JFileChooser irá permitir apenas a seleção de diretórios.
+     *                      Se for false, permitirá a seleção de arquivos .csv.
+     * @return o caminho absoluto do arquivo ou diretório selecionado, ou null se nenhuma seleção for feita.
      */
     private String selectFileOrDirectory(boolean directoryOnly) {
         JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setLocale(new Locale("pt", "BR"));
 
         if (directoryOnly) {
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);

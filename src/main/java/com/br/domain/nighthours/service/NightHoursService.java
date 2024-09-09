@@ -1,7 +1,7 @@
 package com.br.domain.nighthours.service;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 public interface NightHoursService {
-    long calculate(LocalTime start, LocalTime end);
+    long calculate(final LocalDateTime start, final LocalDateTime end);
 }

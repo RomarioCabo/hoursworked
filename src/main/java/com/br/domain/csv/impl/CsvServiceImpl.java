@@ -17,7 +17,7 @@ public class CsvServiceImpl implements CsvService {
     private static final char CSV_DELIMITER = ';';
     private static final int HEADER_INDEX = 1;
     private static final String[] CSV_HEADER = {"Nome do Funcionário", "Horário de Entrada", "Horário de Saída",
-            "Minutos com 20%"};
+            "Minutos do adicional de 20%", "Horas do adicional de 20%)"};
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     @Override
@@ -80,6 +80,7 @@ public class CsvServiceImpl implements CsvService {
                 .name(record[0].trim())
                 .entryTime(LocalTime.parse(record[1], TIME_FORMATTER))
                 .departureTime(LocalTime.parse(record[2], TIME_FORMATTER))
+                .quantityMinutes(null)
                 .quantityHours(null)
                 .build();
     }
@@ -89,6 +90,7 @@ public class CsvServiceImpl implements CsvService {
                 employee.getName(),
                 employee.getEntryTime().format(TIME_FORMATTER),
                 employee.getDepartureTime().format(TIME_FORMATTER),
+                employee.getQuantityMinutes() != null ? employee.getQuantityMinutes().toString() : "",
                 employee.getQuantityHours() != null ? employee.getQuantityHours().toString() : ""
         };
     }
