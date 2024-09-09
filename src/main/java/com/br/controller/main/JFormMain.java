@@ -16,10 +16,9 @@ import java.util.Locale;
 
 public class JFormMain extends JFrame {
 
-    private JButton jButtonCalculate;
+    private JButton jButtonCalculate, jButtonSelectExcel, jButtonSelectPathSave;
     private JLabel jLabelWait;
-    private JTextField jTextFieldPathToExcel;
-    private JTextField jTextFieldPathToSaveNewExcel;
+    private JTextField jTextFieldPathToExcel, jTextFieldPathToSaveNewExcel;
 
     private final CsvService csvService = new CsvServiceImpl();
     private final EmployeeService employeeService = new EmployeeServiceImpl();
@@ -47,14 +46,19 @@ public class JFormMain extends JFrame {
         UIManager.put("FileChooser.lookInLabelText", "Procurar em");
         UIManager.put("FileChooser.folderNameLabelText", "Nome da Pasta");
 
+        UIManager.put("OptionPane.yesButtonText", "Sim");
+        UIManager.put("OptionPane.noButtonText", "Não");
+        UIManager.put("OptionPane.cancelButtonText", "Cancelar");
+        UIManager.put("OptionPane.okButtonText", "OK");
+
         JPanel jPanel1 = new JPanel();
         JLabel jLabelTitle = new JLabel();
         JLabel jLabel1 = new JLabel();
         jTextFieldPathToExcel = new JTextField();
-        JButton jButtonSelectExcel = new JButton();
+        jButtonSelectExcel = new JButton();
         JLabel jLabel2 = new JLabel();
         jTextFieldPathToSaveNewExcel = new JTextField();
-        JButton jButtonSelectPathSave = new JButton();
+        jButtonSelectPathSave = new JButton();
         jButtonCalculate = new JButton();
         jLabelWait = new JLabel();
 
@@ -96,8 +100,8 @@ public class JFormMain extends JFrame {
         jButtonCalculate.setCursor(new Cursor(Cursor.HAND_CURSOR));
         jButtonCalculate.addActionListener(this::jButtonCalculateActionPerformed);
 
-        jLabelWait.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        jLabelWait.setForeground(Color.RED);
+        jLabelWait.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        jLabelWait.setForeground(Color.BLACK);
         jLabelWait.setText("Aguarde...");
         jLabelWait.setVisible(false);
 
@@ -190,25 +194,41 @@ public class JFormMain extends JFrame {
             return;
         }
 
-        jLabelWait.setVisible(true);
-        jButtonCalculate.setEnabled(false);
-
-        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+        SwingWorker<String, Void> worker = new SwingWorker<>() {
             @Override
-            protected Void doInBackground() {
+            protected String doInBackground() throws InterruptedException {
+                buildScreenStates(true, false, false,
+                        false, false, new Cursor(Cursor.WAIT_CURSOR));
+
                 List<Employee> mappedEmployees = employeeService
                         .mapperHoursWorked(csvService.readEmployeesFromCsv(jTextFieldPathToExcel.getText()));
 
-                csvService.writeEmployeesToCsv(mappedEmployees, jTextFieldPathToSaveNewExcel.getText() + "\\Ponto funcionários calculado.csv");
-                return null;
+                String absolutPathToCsvFile = jTextFieldPathToSaveNewExcel.getText() + "\\Ponto funcionários calculado.csv";
+
+                csvService.writeEmployeesToCsv(mappedEmployees, absolutPathToCsvFile);
+
+                Thread.sleep(2000);
+
+                return absolutPathToCsvFile;
             }
 
             @Override
             protected void done() {
-                jLabelWait.setVisible(false);
-                jButtonCalculate.setEnabled(true);
+                try {
+                    buildScreenStates(false, true, true,
+                            true, true, new Cursor(Cursor.DEFAULT_CURSOR));
 
-                JOptionPane.showMessageDialog(null, "CSV gerado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    int option = JOptionPane.showConfirmDialog(null, "CSV gerado com sucesso! Deseja abrir o arquivo?",
+                            "Sucesso", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+
+                    if (option == JOptionPane.YES_OPTION) {
+                        String absolutPathToCsvFile = get();
+                        openFileCsv(absolutPathToCsvFile);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Erro ao gerar o arquivo: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+                }
             }
         };
 
@@ -250,5 +270,42 @@ public class JFormMain extends JFrame {
         }
 
         return false;
+    }
+
+    private void openFileCsv(final String path) {
+        File file = new File(path);
+        if (file.exists()) {
+            try {
+                Desktop desktop = Desktop.getDesktop();
+                if (desktop.isSupported(Desktop.Action.OPEN)) {
+                    desktop.open(file);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Abrir arquivos não é suportado no seu sistema.",
+                            "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Erro ao tentar abrir o arquivo: " + e.getMessage(),
+                        "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Arquivo não encontrado.",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void buildScreenStates(final boolean enableJLabelWait, final boolean enableJButtonCalculate,
+                                   final boolean enableJButtonSelectExcel, final boolean enableJButtonSelectPathSave,
+                                   final boolean clearJTextFields, final Cursor cursor) {
+        jLabelWait.setVisible(enableJLabelWait);
+        jButtonCalculate.setEnabled(enableJButtonCalculate);
+        jButtonSelectExcel.setEnabled(enableJButtonSelectExcel);
+        jButtonSelectPathSave.setEnabled(enableJButtonSelectPathSave);
+        if (clearJTextFields) {
+            jTextFieldPathToExcel.setText("");
+            jTextFieldPathToSaveNewExcel.setText("");
+        }
+        setCursor(cursor);
+        pack();
     }
 }

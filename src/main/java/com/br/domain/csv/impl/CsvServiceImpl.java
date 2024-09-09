@@ -17,7 +17,7 @@ public class CsvServiceImpl implements CsvService {
     private static final char CSV_DELIMITER = ';';
     private static final int HEADER_INDEX = 1;
     private static final String[] CSV_HEADER = {"Nome do Funcionário", "Horário de Entrada", "Horário de Saída",
-            "Minutos do adicional de 20%", "Horas do adicional de 20%)"};
+            "Minutos trabalhados após as 22 horas", "Horas trabalhadas após as 22 horas"};
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     @Override
